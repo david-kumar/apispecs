@@ -1,0 +1,357 @@
+openapi: 3.0.1
+info:
+  title: Ethos API's
+  description: Ethos API's
+  version: 1.0.0
+servers:
+  - url: 'https://integrate.elluciancloud.com/api/'
+    description: Ethos Integration API
+  - url: 'https://integrate.elluciancloud.com/qapi/'
+    description: Ethos Integration QAPI for querying purposes
+paths:
+  /persons:
+    get:
+      parameters:
+        - name: criteria
+          in: query
+          description: Criteria to filter by in JSON format.
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: The number of results to return in a given response.
+          required: false
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          description: The index from which to begin retrieving results.
+          required: false
+          schema:
+            type: integer
+      x-codeSamples:
+        - lang: C#
+          label: CSharp
+          source: |
+            EthosProxyClient ethosProxyClient = GetEthosProxyClient();
+            EthosResponse ethosResponse = null;
+            try
+            {
+                string resourceName = "student-cohorts";
+                ethosResponse = await ethosProxyClient.GetAsync( resourceName, string.Empty );
+                string totalCountHdr = ethosResponse.GetHeader( EthosProxyClient.HDR_X_TOTAL_COUNT );
+                Console.WriteLine( "******* Get data for resource example, no paging. *******" );
+                Console.WriteLine( $"Get data for resource: {resourceName}" );
+                PrintHeaders( ethosResponse );
+                Console.WriteLine( "getResource() TOTAL COUNT: " + totalCountHdr );
+                Console.WriteLine( "getResource() RESPONSE: " + ethosResponse );
+            }
+            catch ( Exception e )
+            {
+                Console.WriteLine( e.Message );
+            }
+        - lang: Java
+          source: |
+            EthosProxyClient ethosProxyClient = getEthosProxyClient();
+            try {
+                String resourceName = "student-cohorts";
+                JsonNode jsonNode = ethosProxyClient.getAsJsonNode(resourceName);
+                System.out.println( "******* doGetResourceAsJsonNodeExample() *******" );
+                System.out.println(String.format("Get data for resource: %s", resourceName));
+                System.out.println("getAsJsonNode() PAGE SIZE: " + jsonNode.size());
+                System.out.println("getAsJsonNode() RESPONSE: " + jsonNode.toString() );
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+      tags:
+        - persons
+      summary: Return resources from persons
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Media-Type:
+              description: The full semantic version with the media type of the response
+              schema:
+                type: string
+          content:
+            application/vnd.hedtech.integration.v1.0.0+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/persons-1.0.0_get'
+              examples:
+                persons-v1.json:
+                  value:
+                    cntyCode: 157
+                    county: Denton
+                    streetLine1: Street Line 1
+                    streetLine2: Street Line 2
+                    courses:
+                      - id: 1
+                        name: Statistics
+                      - id: 2
+                        name: Music 101
+                persons-v1.1.json:
+                  value: 
+                    cntyCode: 157
+                    county: Denton
+                    streetLine1: Street Line A
+                    streetLine2: Street Line B
+                    courses:
+                      - id: 1
+                        name: History
+                      - id: 2
+                        name: Music 501
+                      - id: 3
+                        name: Science 220
+            application/vnd.hedtech.integration.v2.0.0+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/persons-2.0.0_get'
+              examples:
+                persons-v2.json:
+                  value:
+                    cntyCode: 180
+                    county: Monroe
+                    streetLine1: 123 Main St.
+                    streetLine2: null
+    post:
+      tags:
+        - persons
+      summary: Return resources from persons
+      requestBody:
+        description: user to add to the system
+        content:
+          application/vnd.hedtech.integration.v1.0.0+json:
+            schema:
+              $ref: '#/components/schemas/persons-1.0.0_get'
+            examples:
+              request-persons-v1.json:
+                value:
+                  cntyCode: 110
+                  county: Tarrant
+                  streetLine1: 321 Internet Blvd
+                  streetLine2: Suite 230
+          application/vnd.hedtech.integration.v2.0.0+json:
+            schema:
+              $ref: '#/components/schemas/persons-2.0.0_get'
+            examples:
+              request-persons-v2.json:
+                value:
+                  cntyCode: 180
+                  streetLine1: 203 Network Blvd
+                  city: Dallas
+                  zip: 74231
+                  statCode: TX
+      responses:
+        '200':
+          description: OK
+          headers:
+            X-Media-Type:
+              description: The full semantic version with the media type of the response
+              schema:
+                type: string
+          content:
+            application/vnd.hedtech.integration.v1.0.0+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/persons-1.0.0_get'
+              examples:
+                response-persons-v1.json:
+                  value:
+                    cntyCode: 210
+                    county: Parker
+                    streetLine1: 123 WebApp Blvd
+                    streetLine2: Suite 250
+            application/vnd.hedtech.integration.v2.0.0+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/persons-2.0.0_get'
+              examples:
+                response-persons-v2.json:
+                  value:
+                    cntyCode: 310
+                    county: Bryce
+                    streetLine1: 456 Deployment Blvd
+                    streetLine2: Suite 270
+        '401':
+          description: Failure. Unauthorized
+components:
+  schemas:
+    persons-1.0.0_get:
+      required:
+        - atypCode
+      type: object
+      properties:
+        cntyCode:
+          title: County
+          maxLength: 30
+          type: string
+          x-lineageReferenceObject: SPRADDR_CNTY_CODE
+          x-lineageLookupReferenceObject: stvcnty
+        streetLine1:
+          title: Street Line 1
+          maxLength: 75
+          type: string
+          x-lineageReferenceObject: SPRADDR_STREET_LINE1
+        streetLine2:
+          title: Street Line 2
+          maxLength: 75
+          type: string
+          x-lineageReferenceObject: SPRADDR_STREET_LINE2
+        courses:
+          $ref: '#/components/schemas/courses'
+    persons-2.0.0_get:
+      required:
+        - atypCode
+      type: object
+      properties:
+        cntyCode:
+          title: County
+          maxLength: 30
+          type: string
+          x-lineageReferenceObject: SPRADDR_CNTY_CODE
+          x-lineageLookupReferenceObject: stvcnty
+        streetLine2:
+          title: Street Line 2
+          maxLength: 75
+          type: string
+          x-lineageReferenceObject: SPRADDR_STREET_LINE2
+        streetLine1:
+          title: Street Line 1
+          maxLength: 75
+          type: string
+          x-lineageReferenceObject: SPRADDR_STREET_LINE1
+        city:
+          title: City
+          maxLength: 50
+          type: string
+          x-lineageReferenceObject: SPRADDR_CITY
+        streetLine3:
+          title: Street Line 3
+          maxLength: 75
+          type: string
+          x-lineageReferenceObject: SPRADDR_STREET_LINE3
+        carrierRoute:
+          title: Carrier Route
+          maxLength: 4
+          type: string
+          x-lineageReferenceObject: SPRADDR_CARRIER_ROUTE
+        activityDate:
+          title: Activity Date
+          maxLength: 26
+          type: string
+          x-lineageReferenceObject: SPRADDR_ACTIVITY_DATE
+        statusInd:
+          title: Inactivate Address
+          maxLength: 1
+          type: string
+          x-lineageReferenceObject: SPRADDR_STATUS_IND
+        teleDescription:
+          type: string
+        statDescription:
+          type: string
+        correctionDigit:
+          title: Correction Digit
+          maxLength: 1
+          type: number
+          x-lineageReferenceObject: SPRADDR_CORRECTION_DIGIT
+        zip:
+          title: ZIP or Postal Code
+          maxLength: 30
+          type: string
+          x-lineageReferenceObject: SPRADDR_ZIP
+        phoneExt:
+          title: Extension
+          maxLength: 10
+          type: string
+        deliveryPoint:
+          title: Delivery Point
+          maxLength: 2
+          type: number
+          x-lineageReferenceObject: SPRADDR_DELIVERY_POINT
+        statCode:
+          title: State or Province
+          maxLength: 30
+          type: string
+          x-lineageReferenceObject: SPRADDR_STAT_CODE
+          x-lineageLookupReferenceObject: stvstat
+        natnCode:
+          title: Nation
+          maxLength: 30
+          type: string
+          x-lineageReferenceObject: SPRADDR_NATN_CODE
+          x-lineageLookupReferenceObject: stvnatn
+        seqno:
+          title: Sequence Number
+          maxLength: 2
+          type: number
+          x-lineageReferenceObject: SPRADDR_SEQNO
+        phoneCtry:
+          title: Country Code
+          maxLength: 4
+          type: string
+        toDate:
+          title: To Date
+          maxLength: 11
+          type: string
+          x-lineageReferenceObject: SPRADDR_TO_DATE
+        asrcCode:
+          title: Source
+          maxLength: 30
+          type: string
+          x-lineageReferenceObject: SPRADDR_ASRC_CODE
+          x-lineageLookupReferenceObject: stvasrc
+        natnDescription:
+          type: string
+        teleCode:
+          title: Telephone Type
+          maxLength: 30
+          type: string
+          x-lineageLookupReferenceObject: stvtele
+        cntyDescription:
+          type: string
+        fromDate:
+          title: From Date
+          maxLength: 11
+          type: string
+          x-lineageReferenceObject: SPRADDR_FROM_DATE
+        phoneNumber:
+          title: Phone Number
+          maxLength: 12
+          type: string
+        phoneArea:
+          title: Area Code
+          maxLength: 6
+          type: string
+        atypDescription:
+          type: string
+        user:
+          title: User
+          maxLength: 30
+          type: string
+          x-lineageReferenceObject: SPRADDR_USER
+        atypCode:
+          title: Address Type
+          maxLength: 30
+          type: string
+          x-lineageReferenceObject: SPRADDR_ATYP_CODE
+          x-lineageLookupReferenceObject: stvatyp
+      additionalProperties: false
+      x-lineageReferenceObject: spraddr
+    courses:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
